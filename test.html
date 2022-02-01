@@ -1,0 +1,54 @@
+<html>
+<script type="text/javascript">
+
+function get_motor() {
+    var url = 'http://localhost:5000/robot';
+
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage0").textContent=data["motor0"]["voltage"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("velocity0").textContent=data["motor0"]["speed"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage1").textContent=data["motor1"]["voltage"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage1").textContent=data["motor1"]["speed"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage2").textContent=data["motor2"]["voltage"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage2").textContent=data["motor2"]["speed"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage3").textContent=data["motor3"]["voltage"];
+    });
+    fetch(url).then(response => response.json()).then(data =>  {
+        document.getElementById("voltage3").textContent=data["motor3"]["speed"];
+    });
+}
+
+</script>
+
+<body onload="window.setInterval(get_motor, 1000)">
+Robot Values <hr>
+Motor0 Voltage: <span id="voltage0"> X </span>
+<br>
+Motor0 Velocity <span id="velocity0"> X </span>
+<br>
+Motor1 Voltage: <span id="voltage1"> X </span>
+<br>
+Motor1 Velocity <span id="velocity1"> X </span>
+<br>
+Motor2 Voltage: <span id="voltage3"> X </span>
+<br>
+Motor2 Velocity <span id="velocity3"> X </span>
+<br>
+Motor3 Voltage: <span id="voltage3"> X </span>
+<br>
+Motor3 Velocity <span id="velocity3"> X </span>
+</body>
+</html>
+
