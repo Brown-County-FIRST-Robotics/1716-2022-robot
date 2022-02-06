@@ -1,5 +1,4 @@
 # meccanum
-Meccanum Wheel Repo
 
 Motors used:
 |Motor name|Manufacturer|Controller|ID|
