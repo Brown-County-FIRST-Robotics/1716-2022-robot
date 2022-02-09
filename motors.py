@@ -3,6 +3,7 @@ import wpilib
 import wpilib.drive
 import ctre
 from wpilib import interfaces
+import rev
 
 class MyRobot(wpilib.TimedRobot):
     def testInit(self):
@@ -20,7 +21,8 @@ class MyRobot(wpilib.TimedRobot):
         self.climber_BL = ctre.WPI_TalonFX(11)
         self.climber_BR = ctre.WPI_TalonFX(12)
         self.climber_angle = ctre.WPI_TalonFX(13)
-
+        self.solenoid0 = wpilib.Solenoid(wpilib.PneumaticsModuleType(0), 0)
+        self.solenoid1 = wpilib.Solenoid(wpilib.PneumaticsModuleType(0), 1)
         
         self.front_left.setInverted(True)
         self.back_left.setInverted(True)
@@ -31,14 +33,14 @@ class MyRobot(wpilib.TimedRobot):
         self.right = wpilib.SpeedControllerGroup(self.front_right, self.back_right)
         self.drive = wpilib.drive.DifferentialDrive(self.left, self.right)
 
-        self.left_hand = interfaces._interfaces.GenericHID.Hand.kLeftHand
-        self.right_hand = interfaces._interfaces.GenericHID.Hand.kRightHand
         self.controller = wpilib.XboxController(0)
         self.controllerHID = interfaces.GenericHID(0)
         self.rumbleType = interfaces.GenericHID.RumbleType.kLeftRumble
 
         self.queuer_on = 0
-
+        self.solenoid0.set(False)
+        self.solenoid1.set(False)
+        
     def testPeriodic(self):
         if self.controller.getBackButtonPressed(): #queuer toggle
             if self.queuer_on == 0:
@@ -46,17 +48,22 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 self.queuer_on = 0
         self.queuer.set(self.queuer_on * .2)
-        self.intake.set(self.controller.getBumper(self.left_hand) * .2)
-        self.shooter.set(self.controller.getTriggerAxis(self.right_hand))
-        self.controllerHID.setRumble(self.rumbleType, self.controller.getTriggerAxis(self.right_hand))
+        self.intake.set(self.controller.getLeftBumper() * .2)
+        self.shooter.set(self.controller.getRightTriggerAxis())
+        self.controllerHID.setRumble(self.rumbleType, self.controller.getRightTriggerAxis())
         if self.controllerHID.getPOV() == 0: #shooter angle with D-pad
             self.shooter_angle.set(.2)
         elif self.controllerHID.getPOV() == 180:
             self.shooter_angle.set(-.2)
         else:
             self.shooter_angle.set(0)
-        
-        
+
+        if self.controller.getAButtonPressed() and self.solenoid0.get() == False:
+            self.solenoid0.set(True)
+            self.solenoid1.set(True)
+        elif self.controller.getAButtonPressed() and self.solenoid0.get() == True:
+            self.solenoid0.set(False)
+            self.solenoid1.set(False)
 
         
 if __name__ == "__main__":
