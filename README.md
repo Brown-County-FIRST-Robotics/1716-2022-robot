@@ -3,6 +3,7 @@
 **Repository for FIRST Robotics team 1716, season of 2022**
 ## Navigation
 [Information of Motors We Used](#motors-used)
+
 [NetworkTables Variables Used](#networktables-variables)
 
 ###### Motors used:
