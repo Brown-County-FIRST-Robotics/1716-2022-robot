@@ -16,7 +16,25 @@
 |self.shooter_angle_1|CTRE|WPI_TalonSRX|10|
 |self.shooter_angle_2|CTRE|WPI_TalonSRX|11|
 
+
+###### Controller Functions
+
+Extensive list of all input methods on our robot.
+
+|Controller Name|Input Method|Axis|Value|Outputed Action|
+|-|-|-|-|-|
+|Xbox Controller|Left Joystick|X|-1 - 1|Strafe Left & Right|
+|Xbox Controller|Left Joystick|Y|-1 - 1|Move Forwards and Backwards|
+|Xbox Controller|Right Joystick|X| -1 - 1|Rotate|
+|Xbox Controller|D-Pad UP|N/A|0|Raise Shooter Arm|
+|Xbox Controller|D-Pad DOWN|N/A|180|Lower Shooter Arm|
+|Xbox Controller|Left Trigger|0 - 1|Spin Intake In Reverse(Output)|
+|Xbox Controller|Right Trigger|0 - 1|Spin Intake Forwards(Intake)|
+
 ###### NetworkTables Variables
+
+List of `NetworkTables` variables used in our code.
+
 |Variable Name|Sub Table _If Applicable_|Key Example|
 |-|-|-|
 |Parent Table|N/A|smartdash/|
