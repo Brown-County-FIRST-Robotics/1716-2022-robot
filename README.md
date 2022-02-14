@@ -29,8 +29,8 @@ Extensive list of all input methods on our robot.
 |Xbox Controller|Right Joystick|X| -1 - 1|Rotate|
 |Xbox Controller|D-Pad UP|N/A|0|Raise Shooter Arm|
 |Xbox Controller|D-Pad DOWN|N/A|180|Lower Shooter Arm|
-|Xbox Controller|Left Trigger|0 - 1|Spin Intake In Reverse(Output)|
-|Xbox Controller|Right Trigger|0 - 1|Spin Intake Forwards(Intake)|
+|Xbox Controller|Left Trigger|N/A|0 - 1|Spin Intake In Reverse(Output)|
+|Xbox Controller|Right Trigger|N/A|0 - 1|Spin Intake Forwards(Intake)|
 
 ###### NetworkTables Variables
 
