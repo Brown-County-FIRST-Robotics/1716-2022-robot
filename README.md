@@ -17,7 +17,6 @@
 |self.shooter_angle_1|CTRE|WPI_TalonSRX|10|
 |self.shooter_angle_2|CTRE|WPI_TalonSRX|11|
 
-
 ###### Controller Functions
 
 Extensive list of all input methods on our robot.
