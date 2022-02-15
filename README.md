@@ -16,4 +16,4 @@ Motors used:
 |self.climber_FL|CTRE|WPI_TalonFX|10|
 |self.climber_BL|CTRE|WPI_TalonFX|11|
 |self.climber_BR|CTRE|WPI_TalonFX|12|
-|self.climber_angle|CTRE|WPI_TalonFX|13|
+|self.climber_angle|CTRE|WPI_TalonFX|13
