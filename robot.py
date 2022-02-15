@@ -15,13 +15,55 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
 
-        #controller groups
+        #motor controller groups
         self.shooter_angle = wpilib.MotorControllerGroup(self.shooter_angle_1, self.shooter_angle_2)
 
         #controller variables
         self.controller = wpilib.XboxController(0)
         self.controllerHID = interfaces.GenericHID(0)
 
+        #autonomous variables
+        self.timer = wpilib.Timer()
+        self.timer.start()
+        self.routine1 = []
+
+        target_position = 0
+        motor_position = 0
+
+        motor_dictionary = {
+            "front_right": {
+                "motor": self.front_right,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+            "front_left": {
+                "motor": self.front_left,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+            "back_right": {
+                "motor": self.back_right,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+            "back_left": {
+                "motor": self.back_left,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+            "intake": {
+                "motor": self.intake,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+            "shooter_angle": {
+                "motor": self.shooter_angle,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+        }
+
+        #other variables
         self.drive_speed = .5
 
 
