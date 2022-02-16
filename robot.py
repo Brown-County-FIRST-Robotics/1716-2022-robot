@@ -4,18 +4,18 @@ from wpilib import interfaces
 
 
 class MyRobot(wpilib.TimedRobot):
-    def testInit(self):
+    
+    def robotInit(self):
         self.back_right = ctre.WPI_TalonFX(0)
         self.front_left = ctre.WPI_TalonFX(1)
         self.back_left = ctre.WPI_TalonFX(2)
         self.front_right = ctre.WPI_TalonFX(3)
-        self.intake1 = ctre.WPI_TalonFX(4)
-        self.intake2 = ctre.WPI_TalonFX(5)
+        self.intake = ctre.WPI_TalonFX(4)
         self.shooter_angle_1 = ctre.WPI_TalonSRX(11)
         self.shooter_angle_2 = ctre.WPI_TalonSRX(10)
-        self.front_right.setInverted(True)
-        self.back_right.setInverted(True)
-
+        self.drive_speed = .5
+    def testInit(self):
+        
         #motor controller groups
         self.shooter_angle = wpilib.MotorControllerGroup(self.shooter_angle_1, self.shooter_angle_2)
 
@@ -24,50 +24,53 @@ class MyRobot(wpilib.TimedRobot):
         self.controllerHID = interfaces.GenericHID(0)
 
         #other variables
-        self.drive_speed = .5
+        
 
     def autonomousInit(self):
         self.timer = wpilib.Timer()
         self.timer.start()
-        self.routine1 = []
+        
 
-        target_position = 0
+        self.routine1 = []
+        self.sensor = self.back_right.getSensorCollection()
+        self.sensor.setIntegratedSensorPosition(0)
+        self.target_position = 0
         motor_position = 0
 
         motor_dictionary = {
             "front_right": {
                 "motor": self.front_right,
-                "target_position": target_position,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
             "front_left": {
                 "motor": self.front_left,
-                "target_position": target_position,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
             "back_right": {
                 "motor": self.back_right,
-                "target_position": target_position,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
             "back_left": {
                 "motor": self.back_left,
-                "target_position": target_position,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
             "intake1": {
-                "motor": self.intake1,
-                "target_position": target_position,
+                "motor": self.intake,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
-            "intake2": {
-                "motor": self.intake2,
-                "target_position": target_position,
+            "shooter_angle_1": {
+                "motor": self.shooter_angle_1,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
-            "shooter_angle": {
-                "motor": self.shooter_angle,
-                "target_position": target_position,
+            "shooter_angle_2": {
+                "motor": self.shooter_angle_2,
+                "target_position": self.target_position,
                 "position": motor_position,
             },
         }
@@ -105,7 +108,16 @@ class MyRobot(wpilib.TimedRobot):
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 0)
 
     def autonomousPeriodic(self):
-        ...
+        if self.timer.hasPeriodPassed(5):
+            while self.sensor.getIntegratedSensorPosition() < self.target_position :
+                self.back_right.set(.5)
+                print(self.sensor.getIntegratedSensorPosition())
+        
+        self.back_right.set(0)
+
+        
+
+
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
