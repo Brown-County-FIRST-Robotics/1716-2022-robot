@@ -9,7 +9,8 @@ class MyRobot(wpilib.TimedRobot):
         self.front_left = ctre.WPI_TalonFX(1)
         self.back_left = ctre.WPI_TalonFX(2)
         self.front_right = ctre.WPI_TalonFX(3)
-        self.intake = ctre.WPI_TalonFX(4)
+        self.intake1 = ctre.WPI_TalonFX(4)
+        self.intake2 = ctre.WPI_TalonFX(5)
         self.shooter_angle_1 = ctre.WPI_TalonSRX(11)
         self.shooter_angle_2 = ctre.WPI_TalonSRX(10)
         self.front_right.setInverted(True)
@@ -22,7 +23,10 @@ class MyRobot(wpilib.TimedRobot):
         self.controller = wpilib.XboxController(0)
         self.controllerHID = interfaces.GenericHID(0)
 
-        #autonomous variables
+        #other variables
+        self.drive_speed = .5
+
+    def autonomousInit(self):
         self.timer = wpilib.Timer()
         self.timer.start()
         self.routine1 = []
@@ -51,8 +55,13 @@ class MyRobot(wpilib.TimedRobot):
                 "target_position": target_position,
                 "position": motor_position,
             },
-            "intake": {
-                "motor": self.intake,
+            "intake1": {
+                "motor": self.intake1,
+                "target_position": target_position,
+                "position": motor_position,
+            },
+            "intake2": {
+                "motor": self.intake2,
                 "target_position": target_position,
                 "position": motor_position,
             },
@@ -62,10 +71,9 @@ class MyRobot(wpilib.TimedRobot):
                 "position": motor_position,
             },
         }
-
-        #other variables
-        self.drive_speed = .5
-
+    
+    def disabledInit(self):
+        ...
 
     def testPeriodic(self):
         self.front_right.set((self.controller.getLeftY() - self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
@@ -95,6 +103,9 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kRightRumble, 0)
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 0)
+
+    def autonomousPeriodic(self):
+        ...
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
