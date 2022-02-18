@@ -1,6 +1,7 @@
 import wpilib
 import ctre
 from wpilib import interfaces
+from . import helper_functions
 
 
 class MyRobot(wpilib.TimedRobot):
@@ -10,10 +11,16 @@ class MyRobot(wpilib.TimedRobot):
         self.front_left = ctre.WPI_TalonFX(1)
         self.back_left = ctre.WPI_TalonFX(2)
         self.front_right = ctre.WPI_TalonFX(3)
-        self.intake = ctre.WPI_TalonFX(4)
+        self.intake = ctre.WPI_TalonSRX(4)
         self.shooter_angle_1 = ctre.WPI_TalonSRX(11)
         self.shooter_angle_2 = ctre.WPI_TalonSRX(10)
         self.drive_speed = .5
+        self.back_right.configSelectedFeedbackSensor(ctre.TalonFXFeedbackDevice.IntegratedSensor)
+        self.front_left.configSelectedFeedbackSensor(ctre.TalonFXFeedbackDevice.IntegratedSensor)
+        self.back_left.configSelectedFeedbackSensor(ctre.TalonFXFeedbackDevice.IntegratedSensor)
+        self.front_right.configSelectedFeedbackSensor(ctre.TalonFXFeedbackDevice.IntegratedSensor)
+
+
     def testInit(self):
         
         #motor controller groups
@@ -29,7 +36,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousInit(self):
         self.timer = wpilib.Timer()
         self.timer.start()
-        
+        self.routine = [[True, True], [False, True], [False, True], [False, True]]
 
         self.routine1 = []
         self.sensor = self.back_right.getSensorCollection()
@@ -37,7 +44,7 @@ class MyRobot(wpilib.TimedRobot):
         self.target_position = 0
         motor_position = 0
 
-        motor_dictionary = {
+        self.motor_dictionary = {
             "front_right": {
                 "motor": self.front_right,
                 "target_position": self.target_position,
@@ -108,16 +115,50 @@ class MyRobot(wpilib.TimedRobot):
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 0)
 
     def autonomousPeriodic(self):
-        if self.timer.hasPeriodPassed(5):
-            while self.sensor.getIntegratedSensorPosition() < self.target_position :
-                self.back_right.set(.5)
-                print(self.sensor.getIntegratedSensorPosition())
+        # if self.timer.hasPeriodPassed(5):
+        #     while self.sensor.getIntegratedSensorPosition() < self.target_position :
+        #         self.back_right.set(.5)
+        #         print(self.sensor.getIntegratedSensorPosition())
         
-        self.back_right.set(0)
+        # self.back_right.set(0)
 
         
 
+        for maneuver in self.routine:
+            for motor in self.motor_dictionary:    #update motor positions for compatible motors
+                motor["position"] = motor["motor"].getSelectedSensorPosition()
 
+            if self.routine[0][0]:
+                if self.routine[0][1]:
+                    self.motor_dictionary["front_right"]["target_position"] = 360
+                    self.routine[0][1] = False
+                maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
+                self.routine[0][0] = maneuver_enabled
+                self.routine[1][0] = not maneuver_enabled
+
+            if self.routine[1][0]:
+                if self.routine[1][1]:
+                    self.motor_dictionary["front_right"]["target_position"] = 0
+                    self.routine[1][1] = False
+                maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
+                self.routine[1][0] = maneuver_enabled
+                self.routine[2][0] = not maneuver_enabled
+
+            if self.routine[2][0]:
+                if self.routine[2][1]:
+                    self.motor_dictionary["front_right"]["target_position"] = 123
+                    self.routine[2][1] = False
+                maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
+                self.routine[2][0] = maneuver_enabled
+                self.routine[3][0] = not maneuver_enabled
+            
+            if self.routine[4][0]:
+                if self.routine[4][1]:
+                    self.motor_dictionary["front_right"]["target_position"] = -43
+                    self.routine[4][1] = False
+                maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
+                self.routine[4][0] = maneuver_enabled
+                
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

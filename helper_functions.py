@@ -14,7 +14,12 @@ def network_sync(motor_dictionary):
 #motor positioner function
 def motor_positioner(motor_dictionary):
     for motor in motor_dictionary:
-        if motor ["postion"] < motor ["target_position"]:
-                motor.set(1)
+        if motor ["position"] < motor ["target_position"]:
+                motor["motor"].set(1)
+                return True
+        elif motor ["position"] > motor ["target_position"]:
+                motor["motor"].set(-1)
+                return True
         else:
-                motor.set(0)
+                motor["motor"].set(0)
+                return False
