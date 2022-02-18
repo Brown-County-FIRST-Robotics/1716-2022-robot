@@ -38,47 +38,55 @@ class MyRobot(wpilib.TimedRobot):
         self.timer.start()
         self.routine = [[True, True], [False, True], [False, True], [False, True]]
 
-        self.routine1 = []
         self.sensor = self.back_right.getSensorCollection()
         self.sensor.setIntegratedSensorPosition(0)
         self.target_position = 0
-        motor_position = 0
+        self.motor_position = 0
+        self.previous_position = 0
+        
 
         self.motor_dictionary = {
             "front_right": {
                 "motor": self.front_right,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position, #used for motor positioner function
+                "position": self.motor_position,
             },
             "front_left": {
                 "motor": self.front_left,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
             },
             "back_right": {
                 "motor": self.back_right,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
             },
             "back_left": {
                 "motor": self.back_left,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
             },
             "intake1": {
                 "motor": self.intake,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
             },
             "shooter_angle_1": {
                 "motor": self.shooter_angle_1,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
             },
             "shooter_angle_2": {
                 "motor": self.shooter_angle_2,
                 "target_position": self.target_position,
-                "position": motor_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
             },
         }
     
@@ -128,8 +136,10 @@ class MyRobot(wpilib.TimedRobot):
             for motor in self.motor_dictionary:    #update motor positions for compatible motors
                 motor["position"] = motor["motor"].getSelectedSensorPosition()
 
+            
             if self.routine[0][0]:
                 if self.routine[0][1]:
+                    self.motor_dictionary["front_right"]["previous_position"] = self.motor_dictionary["front_right"]["target_position"]
                     self.motor_dictionary["front_right"]["target_position"] = 360
                     self.routine[0][1] = False
                 maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
@@ -138,6 +148,7 @@ class MyRobot(wpilib.TimedRobot):
 
             if self.routine[1][0]:
                 if self.routine[1][1]:
+                    self.motor_dictionary["front_right"]["previous_position"] = self.motor_dictionary["front_right"]["target_position"]
                     self.motor_dictionary["front_right"]["target_position"] = 0
                     self.routine[1][1] = False
                 maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
@@ -146,6 +157,7 @@ class MyRobot(wpilib.TimedRobot):
 
             if self.routine[2][0]:
                 if self.routine[2][1]:
+                    self.motor_dictionary["front_right"]["previous_position"] = self.motor_dictionary["front_right"]["target_position"]
                     self.motor_dictionary["front_right"]["target_position"] = 123
                     self.routine[2][1] = False
                 maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
@@ -154,6 +166,7 @@ class MyRobot(wpilib.TimedRobot):
             
             if self.routine[4][0]:
                 if self.routine[4][1]:
+                    self.motor_dictionary["front_right"]["previous_position"] = self.motor_dictionary["front_right"]["target_position"]
                     self.motor_dictionary["front_right"]["target_position"] = -43
                     self.routine[4][1] = False
                 maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
