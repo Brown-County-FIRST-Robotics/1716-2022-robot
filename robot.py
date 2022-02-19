@@ -48,42 +48,42 @@ class MyRobot(wpilib.TimedRobot):
                 "previous_position": self.previous_position,  # used for motor positioner function
                 "position": self.motor_position,
             },
-            # "front_left": {
-            #     "motor": self.front_left,
-            #     "target_position": self.target_position,
-            #     "previous_position": self.previous_position,
-            #     "position": self.motor_position,
-            # },
-            # "back_right": {
-            #     "motor": self.back_right,
-            #     "target_position": self.target_position,
-            #     "previous_position": self.previous_position,
-            #     "position": self.motor_position,
-            # },
-            # "back_left": {
-            #     "motor": self.back_left,
-            #     "target_position": self.target_position,
-            #     "previous_position": self.previous_position,
-            #     "position": self.motor_position,
-            # },
-            # "intake1": {
-            #     "motor": self.intake,
-            #     "target_position": self.target_position,
-            #     "previous_position": self.previous_position,
-            #     "position": self.motor_position,
-            # },
-            # "shooter_angle_1": {
-            #     "motor": self.shooter_angle_1,
-            #     "target_position": self.target_position,
-            #     "previous_position": self.previous_position,
-            #     "position": self.motor_position,
-            # },
-            # "shooter_angle_2": {
-            #     "motor": self.shooter_angle_2,
-            #     "target_position": self.target_position,
-            #     "previous_position": self.previous_position,
-            #     "position": self.motor_position,
-            # },
+            "front_left": {
+                "motor": self.front_left,
+                "target_position": self.target_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
+            },
+            "back_right": {
+                "motor": self.back_right,
+                "target_position": self.target_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
+            },
+            "back_left": {
+                "motor": self.back_left,
+                "target_position": self.target_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
+            },
+            "intake1": {
+                "motor": self.intake,
+                "target_position": self.target_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
+            },
+            "shooter_angle_1": {
+                "motor": self.shooter_angle_1,
+                "target_position": self.target_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
+            },
+            "shooter_angle_2": {
+                "motor": self.shooter_angle_2,
+                "target_position": self.target_position,
+                "previous_position": self.previous_position,
+                "position": self.motor_position,
+            },
         }
 
     def disabledInit(self):
@@ -144,49 +144,40 @@ class MyRobot(wpilib.TimedRobot):
 
         for maneuver in self.routine:
             for motor in self.motor_dictionary:  # update motor positions for compatible motors
-                self.motor_dictionary[motor]["position"] = self.motor_dictionary[motor][
-                    "motor"
-                ].getSelectedSensorPosition()
+                self.motor_dictionary[motor]["position"] = self.motor_dictionary[motor]["motor"].getSelectedSensorPosition()
 
-            if self.routine[0][0]:
-                if self.routine[0][1]:
-                    self.motor_dictionary["front_right"][
-                        "previous_position"
-                    ] = self.motor_dictionary["front_right"]["target_position"]
-                    self.motor_dictionary["front_right"]["target_position"] = 360
-                    self.routine[0][1] = False
-                maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
-                self.routine[0][0] = maneuver_enabled
-                # self.routine[1][0] = not maneuver_enabled
-            # elif self.routine[1][0]:
-            #     if self.routine[1][1]:
-            #         self.motor_dictionary["front_right"][
-            #             "previous_position"
-            #         ] = self.motor_dictionary["front_right"]["target_position"]
-            #         self.motor_dictionary["front_right"]["target_position"] = 0
-            #         self.routine[1][1] = False
-            #     maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
-            #     self.routine[1][0] = maneuver_enabled
-            #     self.routine[2][0] = not maneuver_enabled
-            # elif self.routine[2][0]:
-            #     if self.routine[2][1]:
-            #         self.motor_dictionary["front_right"][
-            #             "previous_position"
-            #         ] = self.motor_dictionary["front_right"]["target_position"]
-            #         self.motor_dictionary["front_right"]["target_position"] = 123
-            #         self.routine[2][1] = False
-            #     maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
-            #     self.routine[2][0] = maneuver_enabled
-            #     self.routine[3][0] = not maneuver_enabled
-            # elif self.routine[3][0]:
-            #     if self.routine[3][1]:
-            #         self.motor_dictionary["front_right"][
-            #             "previous_position"
-            #         ] = self.motor_dictionary["front_right"]["target_position"]
-            #         self.motor_dictionary["front_right"]["target_position"] = -43
-            #         self.routine[3][1] = False
-            #     maneuver_enabled = helper_functions.motor_positioner(self.motor_dictionary)
-            #     self.routine[3][0] = maneuver_enabled
+            # if self.routine[maneuver][0]:
+            if self.routine[0][1]:
+                self.motor_dictionary["front_right"]["previous_position"] = self.motor_dictionary["front_right"]["target_position"]
+                self.motor_dictionary["front_left"]["previous_position"] = self.motor_dictionary["front_left"]["target_position"]
+                self.motor_dictionary["back_right"]["previous_position"] = self.motor_dictionary["back_right"]["target_position"]
+                self.motor_dictionary["back_left"]["previous_position"] = self.motor_dictionary["back_left"]["target_position"]
+
+                self.motor_dictionary["front_right"]["target_position"] = 100000
+                self.motor_dictionary["front_left"]["target_position"] = 100000
+                self.motor_dictionary["back_right"]["target_position"] = 100000
+                self.motor_dictionary["back_left"]["target_position"] = 100000
+
+                self.routine[0][1] = False
+
+            elif self.routine[1][1]:
+                self.motor_dictionary["front_right"]["previous_position"] = self.motor_dictionary["front_right"]["target_position"]
+                self.motor_dictionary["front_left"]["previous_position"] = self.motor_dictionary["front_left"]["target_position"]
+                self.motor_dictionary["back_right"]["previous_position"] = self.motor_dictionary["back_right"]["target_position"]
+                self.motor_dictionary["back_left"]["previous_position"] = self.motor_dictionary["back_left"]["target_position"]
+
+                self.motor_dictionary["front_right"]["target_position"] = 0
+                self.motor_dictionary["front_left"]["target_position"] = 0
+                self.motor_dictionary["back_right"]["target_position"] = 0
+                self.motor_dictionary["back_left"]["target_position"] = 0
+
+                self.routine[1][1] = False
+
+            while positioner_completed == False:
+                positioner_completed = helper_functions.motor_positioner(self.motor_dictionary)
+            
+            self.routine[maneuver][0] = not positioner_completed
+            self.routine[maneuver + 1][0] = positioner_completed
 
 
 if __name__ == "__main__":

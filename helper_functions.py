@@ -21,10 +21,10 @@ def motor_positioner(motor_dictionary, speed=1):
         ):
             if motor_dictionary[motor]["position"] < motor_dictionary[motor]["target_position"]:
                 motor_dictionary[motor]["motor"].set(speed)
-                return True
+                return False
             else:
                 motor_dictionary[motor]["motor"].set(0)
-                return False
+                return True
 
         if (
             motor_dictionary[motor]["previous_position"]
@@ -32,7 +32,7 @@ def motor_positioner(motor_dictionary, speed=1):
         ):
             if motor_dictionary[motor]["position"] > motor_dictionary[motor]["target_position"]:
                 motor_dictionary[motor]["motor"].set(-speed)
-                return True
+                return False
             else:
                 motor_dictionary[motor]["motor"].set(0)
-                return False
+                return True
