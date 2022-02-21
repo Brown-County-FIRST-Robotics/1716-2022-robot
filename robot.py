@@ -1,20 +1,28 @@
 import wpilib
 import ctre
-from wpilib import interfaces
+from wpilib import DoubleSolenoid, PneumaticsModuleType, interfaces
 
 
 class MyRobot(wpilib.TimedRobot):
-    def testInit(self):
-        self.back_right = ctre.WPI_TalonFX(0)
-        self.front_left = ctre.WPI_TalonFX(1)
-        self.back_left = ctre.WPI_TalonFX(2)
-        self.front_right = ctre.WPI_TalonFX(3)
-        self.intake1 = ctre.WPI_TalonFX(4)
-        self.intake2 = ctre.WPI_TalonFX(5)
+    def teleopInit(self):
+        self.back_right = ctre.WPI_TalonFX(2)
+        self.front_left = ctre.WPI_TalonFX(3)
+        self.back_left = ctre.WPI_TalonFX(4)
+        self.front_right = ctre.WPI_TalonFX(5)
+        self.intake = ctre.WPI_TalonFX(12)
+        self.shooter_top = ctre.WPI_TalonFX(6)
+        self.shooter_bottom = ctre.WPI_TalonFX(7)
         self.shooter_angle_1 = ctre.WPI_TalonSRX(11)
         self.shooter_angle_2 = ctre.WPI_TalonSRX(10)
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
+        self.shooter_bottom.setInverted(True)
+
+        # self.module_type = wpilib.PneumaticsModuleType(0)
+        # self.shooterout = wpilib.DoubleSolenoid(self.module_type, forwardChannel=0, reverseChannel=1)
+
+
+
 
         #motor controller groups
         self.shooter_angle = wpilib.MotorControllerGroup(self.shooter_angle_1, self.shooter_angle_2)
@@ -55,13 +63,8 @@ class MyRobot(wpilib.TimedRobot):
                 "target_position": target_position,
                 "position": motor_position,
             },
-            "intake1": {
-                "motor": self.intake1,
-                "target_position": target_position,
-                "position": motor_position,
-            },
-            "intake2": {
-                "motor": self.intake2,
+            "intake": {
+                "motor": self.intake,
                 "target_position": target_position,
                 "position": motor_position,
             },
@@ -71,16 +74,16 @@ class MyRobot(wpilib.TimedRobot):
                 "position": motor_position,
             },
         }
-    
+
     def disabledInit(self):
         ...
 
-    def testPeriodic(self):
+    def teleopPeriodic(self):
         self.front_right.set((self.controller.getLeftY() - self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
         self.front_left.set((self.controller.getLeftY() + self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
         self.back_left.set((self.controller.getLeftY() - self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
         self.back_right.set((self.controller.getLeftY() + self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
-        
+
         if self.controllerHID.getPOV() == -1 or self.controllerHID.getPOV() == 90 or self.controllerHID.getPOV() == 270:
             self.shooter_angle.set(0)
         elif self.controllerHID.getPOV() == 0:
@@ -89,13 +92,19 @@ class MyRobot(wpilib.TimedRobot):
             self.shooter_angle.set(.5)
 
         if self.controller.getRightTriggerAxis() > self.controller.getLeftTriggerAxis():
-            self.intake.set(self.controller.getRightTriggerAxis() )
+            self.intake.set(self.controller.getRightTriggerAxis())
+            self.shooter_bottom.set(self.controller.getRightTriggerAxis())
+            self.shooter_top.set(self.controller.getRightTriggerAxis())
 
         if self.controller.getRightTriggerAxis() < self.controller.getLeftTriggerAxis():
-            self.intake.set(self.controller.getLeftTriggerAxis() * -1 )
+            self.intake.set(self.controller.getLeftTriggerAxis() * -0.8)
+            self.shooter_bottom.set(self.controller.getLeftTriggerAxis() * -0.8)
+            self.shooter_top.set(self.controller.getLeftTriggerAxis() * -0.8)
 
         if self.controller.getRightTriggerAxis() == self.controller.getLeftTriggerAxis():
             self.intake.set(0)
+            self.shooter_bottom.set(0)
+            self.shooter_top.set(0)
 
         if self.controller.getRightTriggerAxis() != 0:
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kRightRumble, 1)
@@ -103,7 +112,10 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kRightRumble, 0)
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 0)
-
+        # if self.controller.getAButtonPressed():
+        #     self.shooterout.set(wpilib.DoubleSolenoid.Value.kForward)
+        # if self.controller.getBButtonPressed():
+        #     self.shooterout.set(wpilib.DoubleSolenoid.Value.kReverse)
     def autonomousPeriodic(self):
         ...
 
