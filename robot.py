@@ -87,9 +87,9 @@ class MyRobot(wpilib.TimedRobot):
         if self.controllerHID.getPOV() == -1 or self.controllerHID.getPOV() == 90 or self.controllerHID.getPOV() == 270:
             self.shooter_angle.set(0)
         elif self.controllerHID.getPOV() == 0:
-            self.shooter_angle.set(-.5)
+            self.shooter_angle.set(-1)
         elif self.controllerHID.getPOV() == 180:
-            self.shooter_angle.set(.5)
+            self.shooter_angle.set(1)
 
         if self.controller.getRightTriggerAxis() > self.controller.getLeftTriggerAxis():
             self.intake.set(self.controller.getRightTriggerAxis())
