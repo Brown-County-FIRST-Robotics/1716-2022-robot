@@ -1,31 +1,35 @@
 import wpilib
 import ctre
-from wpilib import DoubleSolenoid, PneumaticsModuleType, interfaces
+from wpilib import interfaces
 
 
 class MyRobot(wpilib.TimedRobot):
-    def teleopInit(self):
-        self.back_right = ctre.WPI_TalonFX(2)
-        self.front_left = ctre.WPI_TalonFX(3)
-        self.back_left = ctre.WPI_TalonFX(4)
-        self.front_right = ctre.WPI_TalonFX(5)
-        self.intake = ctre.WPI_TalonFX(12)
+    def robotInit(self):
+        self.back_left = ctre.WPI_TalonFX(0)        
+        self.front_left = ctre.WPI_TalonFX(1)
+        self.front_right = ctre.WPI_TalonFX(2)                
+        self.back_right = ctre.WPI_TalonFX(3)
         self.shooter_top = ctre.WPI_TalonFX(6)
         self.shooter_bottom = ctre.WPI_TalonFX(7)
-        self.shooter_angle_1 = ctre.WPI_TalonSRX(11)
         self.shooter_angle_2 = ctre.WPI_TalonSRX(10)
-        self.front_right.setInverted(True)
-        self.back_right.setInverted(True)
-        self.shooter_bottom.setInverted(True)
+        self.shooter_angle_1 = ctre.WPI_TalonSRX(11)        
+        self.intake = ctre.WPI_TalonFX(12)
 
-        # self.module_type = wpilib.PneumaticsModuleType(0)
-        # self.shooterout = wpilib.DoubleSolenoid(self.module_type, forwardChannel=0, reverseChannel=1)
-
-
-
+        self.front_left.setInverted(True)
+        self.back_left.setInverted(True)
+        self.shooter_top.setInverted(True)
+        
+        #solenoids:
+        self.shooter_solenoid = wpilib.DoubleSolenoid(wpilib.PneumaticsModuleType.CTREPCM, forwardChannel = 0, reverseChannel = 1)
+        self.shooter_solenoid_previous_position = wpilib.DoubleSolenoid.Value.kReverse
+        self.shooter_solenoid_timer = wpilib.Timer()
+        
+        self.intake_solenoid = wpilib.DoubleSolenoid(wpilib.PneumaticsModuleType.CTREPCM, forwardChannel = 2, reverseChannel = 3)
+        self.intake_solenoid_timer = wpilib.Timer()
 
         #motor controller groups
         self.shooter_angle = wpilib.MotorControllerGroup(self.shooter_angle_1, self.shooter_angle_2)
+        self.shooter = wpilib.MotorControllerGroup(self.shooter_top, self.shooter_bottom)
 
         #controller variables
         self.controller = wpilib.XboxController(0)
@@ -33,6 +37,9 @@ class MyRobot(wpilib.TimedRobot):
 
         #other variables
         self.drive_speed = .5
+
+    def teleopInit(self):
+        ...
 
     def autonomousInit(self):
         self.timer = wpilib.Timer()
@@ -75,6 +82,9 @@ class MyRobot(wpilib.TimedRobot):
             },
         }
 
+        self.intake_solenoid_timer.start()
+
+
     def disabledInit(self):
         ...
 
@@ -112,12 +122,27 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kRightRumble, 0)
             self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 0)
-        # if self.controller.getAButtonPressed():
-        #     self.shooterout.set(wpilib.DoubleSolenoid.Value.kForward)
-        # if self.controller.getBButtonPressed():
-        #     self.shooterout.set(wpilib.DoubleSolenoid.Value.kReverse)
+        
+        #solenoids:
+        if self.controller.getAButtonPressed():
+            self.shooter_solenoid_timer.start()
+            if self.shooter_solenoid_previous_position == wpilib.DoubleSolenoid.Value.kForward:
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kReverse)
+                self.shooter_solenoid_previous_position == wpilib.DoubleSolenoid.Value.kReverse
+            if self.shooter_solenoid_previous_position == wpilib.DoubleSolenoid.Value.kReverse:
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
+                self.shooter_solenoid_previous_position == wpilib.DoubleSolenoid.Value.kForward
+        if self.shooter_solenoid_timer.hasElapsed(.25):
+            self.shooter_solenoid_timer.stop()
+            self.shooter_solenoid_timer.reset()
+            self.shooter_solenoid_previous_position = self.shooter_solenoid.get()
+            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+
     def autonomousPeriodic(self):
-        ...
+        if self.intake_solenoid_timer.get() > 1 and self.intake_solenoid_timer.get() < 1.1:
+            self.intake_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
+        if self.intake_solenoid_timer.get() > 1.25 and self.intake_solenoid_timer.get() < 1.35:
+            self.intake_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
