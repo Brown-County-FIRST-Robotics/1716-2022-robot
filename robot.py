@@ -1,6 +1,8 @@
 import wpilib
 import ctre
 from wpilib import interfaces
+import helper_functions
+
 
 
 class MyRobot(wpilib.TimedRobot):
@@ -11,14 +13,18 @@ class MyRobot(wpilib.TimedRobot):
         self.back_right = ctre.WPI_TalonFX(3)
         self.shooter_top = ctre.WPI_TalonFX(6)
         self.shooter_bottom = ctre.WPI_TalonFX(7)
-        self.shooter_angle_2 = ctre.WPI_TalonSRX(10)
-        self.shooter_angle_1 = ctre.WPI_TalonSRX(11)        
+        self.shooter_angle_1 = ctre.WPI_TalonSRX(10)
+        self.shooter_angle_2 = ctre.WPI_TalonSRX(11)        
         self.intake = ctre.WPI_TalonFX(12)
 
         self.front_left.setInverted(True)
         self.back_left.setInverted(True)
         self.shooter_top.setInverted(True)
-        
+
+        #encoders:
+        # self.shooter_angle_1.configSelectedFeedbackSensor(ctre.FeedbackDevice.IntegratedSensor)
+        # nonfunctional ^ (TalonSRX), todo: add a way to sense arm angle
+
         #solenoids:
         self.shooter_solenoid = wpilib.DoubleSolenoid(wpilib.PneumaticsModuleType.CTREPCM, forwardChannel = 0, reverseChannel = 1)
         self.shooter_solenoid_previous_position = wpilib.DoubleSolenoid.Value.kReverse
@@ -34,22 +40,25 @@ class MyRobot(wpilib.TimedRobot):
         #controller variables
         self.controller = wpilib.XboxController(0)
         self.controllerHID = interfaces.GenericHID(0)
+        
+        #auto-shoot variables(used in auto-aiming function shoot())
+        self.shooter_dictionary = {
+            "shoooting": False,
+            "step" : 0,
+            "lock_on_mode" : False,
+            "timer" : 0,
+            "firing" : False #used for spinning up shooter motors and firing the ball
+        }
+        self.shooter_timer = wpilib.Timer()
 
         #other variables
         self.drive_speed = .5
 
-    def teleopInit(self):
-        ...
-
-    def autonomousInit(self):
-        self.timer = wpilib.Timer()
-        self.timer.start()
-        self.routine1 = []
-
+        #motor dictionary: (now in robotInit for function support)
         target_position = 0
         motor_position = 0
 
-        motor_dictionary = {
+        self.motor_dictionary = {
             "front_right": {
                 "motor": self.front_right,
                 "target_position": target_position,
@@ -80,7 +89,21 @@ class MyRobot(wpilib.TimedRobot):
                 "target_position": target_position,
                 "position": motor_position,
             },
+            "shooter": {
+                "motor": self.shooter,
+                "target_position": target_position,
+                "position": motor_position,
+            },
         }
+
+
+    def teleopInit(self):
+        ...
+
+    def autonomousInit(self):
+        self.timer = wpilib.Timer()
+        self.timer.start()
+        self.routine1 = []
 
         self.intake_solenoid_timer.start()
 
@@ -94,12 +117,13 @@ class MyRobot(wpilib.TimedRobot):
         self.back_left.set((self.controller.getLeftY() - self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
         self.back_right.set((self.controller.getLeftY() + self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
 
-        if self.controllerHID.getPOV() == -1 or self.controllerHID.getPOV() == 90 or self.controllerHID.getPOV() == 270:
+        if self.shooter_dictionary["step"] == 0:
+            if self.controller.getRightBumper:
+                self.shooter_angle.set(.5)
+            elif self.controller.getLeftBumper():
+                self.shooter_angle.set(-.5)
+        else:
             self.shooter_angle.set(0)
-        elif self.controllerHID.getPOV() == 0:
-            self.shooter_angle.set(-.5)
-        elif self.controllerHID.getPOV() == 180:
-            self.shooter_angle.set(.5)
 
         if self.controller.getRightTriggerAxis() > self.controller.getLeftTriggerAxis():
             self.intake.set(self.controller.getRightTriggerAxis())
@@ -137,6 +161,24 @@ class MyRobot(wpilib.TimedRobot):
             self.shooter_solenoid_timer.reset()
             self.shooter_solenoid_previous_position = self.shooter_solenoid.get()
             self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+
+        #auto-aiming:
+        if self.controller.getYButtonPressed:
+            self.motor_dictionary["shooter_angle_1"]["previous_position"] = self.shooter_angle_1.getSelectedSensorPosition
+            self.shooter_dictionary["timer"] = 0
+            self.shooter_timer.stop()
+            self.shooter_timer.reset()
+            self.shooter_dictionary["step"] = 0
+            self.shooter_dictionary = helper_functions.shoot(self.shooter_dictionary, self.motor_dictionary)
+        elif self.shooter_dictionary["shooting"]:
+            if self.shooter_dictionary["firing"]:
+                self.shooter_timer.start()
+                self.shooter_dictionary["timer"] = self.shooter_timer.get()
+            self.shooter_dictionary = helper_functions.shoot(self.shooter_dictionary, self.motor_dictionary)
+
+        elif self.controller.getBackButtonPressed:
+            self.shooter_dictionary["shooting"] = False
+
 
     def autonomousPeriodic(self):
         if self.intake_solenoid_timer.get() > 1 and self.intake_solenoid_timer.get() < 1.1:
