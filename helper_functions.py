@@ -60,8 +60,8 @@ def shoot(shooter_dictionary, motor_dictionary, speed = 1) -> dict:
         basketX = basketY / math.tan(angle)
         basketY += 0.30  # height raised to aim for basket (in meters), not for reflective strip and to allow ball to clear rim
         #angle calculation for final angle (1 is the velocity(may need to be convert to m/s)):
-        angle_plus = 180 / (math.atan(((1**2)+ math.sqrt((1**4) - (9.80665* ((9.80665 * (basketX**2)) + (2 * (basketY * (1**2))))))) / (basketX * 9.80665)) * math.pi)
-        angle_minus = 180 / (math.atan(((1**2)- math.sqrt((1**4) - (9.80665 * ((9.80665 * (basketX**2)) + (2 * (basketY * (1**2))))))) / (basketX * 9.80665)) * math.pi)
+        angle_plus = 180 / (math.atan(((10.601739130434783**2) + math.sqrt((10.601739130434783**4) - (9.80665 * ((9.80665 * (basketX**2)) + (2 * (basketY * (10.601739130434783**2))))))) / (basketX * 9.80665)) * math.pi)
+        angle_minus = 180 / (math.atan(((10.601739130434783**2) - math.sqrt((10.601739130434783**4) - (9.80665 * ((9.80665 * (basketX**2)) + (2 * (basketY * (10.601739130434783**2))))))) / (basketX * 9.80665)) * math.pi)
 
         if angle_plus > angle_minus:  # sets the shooter angle to whichever is larger, plus or minus, this will help avoid negative values
             angle = angle_plus
