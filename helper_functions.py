@@ -24,26 +24,28 @@ def motor_positioner(motor_dictionary):
 
 #auto aim and shoot function
 def shoot(shooter_dictionary, motor_dictionary, speed = 1) -> dict:
-    if shooter_dictionary["step"] == 0:
+    if shooter_dictionary["step"] == 0:     #searching for retroreflective tape
         if NetworkTables.getTable("limelight").getNumber("tv", 0) == 1:
             shooter_dictionary["step"] = 1
 
     if shooter_dictionary["step"] == 1:
         if NetworkTables.getTable("limelight").getNumber("tx", 0) < -2:  # horizontal offset
-            motor_dictionary["back_right"]["motor"].set(speed * 0.1)
-            motor_dictionary["front_left"]["motor"].set(-speed * 0.1)
-            motor_dictionary["back_left"]["motor"].set(-speed * 0.1)
-            motor_dictionary["front_right"]["motor"].set(speed * 0.1)
+            ...
+            # motor_dictionary["back_right"]["motor"].set(speed * 0.1)
+            # motor_dictionary["front_left"]["motor"].set(-speed * 0.1)
+            # motor_dictionary["back_left"]["motor"].set(-speed * 0.1)
+            # motor_dictionary["front_right"]["motor"].set(speed * 0.1)
         elif NetworkTables.getTable("limelight").getNumber("tx", 0) > 2:
-            motor_dictionary["back_right"]["motor"].set(-speed * 0.1)
-            motor_dictionary["front_left"]["motor"].set(speed * 0.1)
-            motor_dictionary["back_left"]["motor"].set(speed * 0.1)
-            motor_dictionary["front_right"]["motor"].set(-speed * 0.1)
+            ...
+            # motor_dictionary["back_right"]["motor"].set(-speed * 0.1)
+            # motor_dictionary["front_left"]["motor"].set(speed * 0.1)
+            # motor_dictionary["back_left"]["motor"].set(speed * 0.1)
+            # motor_dictionary["front_right"]["motor"].set(-speed * 0.1)
         else:
-            motor_dictionary["back_right"]["motor"].set(0)
-            motor_dictionary["front_left"]["motor"].set(0)
-            motor_dictionary["back_left"]["motor"].set(0)
-            motor_dictionary["front_right"]["motor"].set(0)
+            # motor_dictionary["back_right"]["motor"].set(0)
+            # motor_dictionary["front_left"]["motor"].set(0)
+            # motor_dictionary["back_left"]["motor"].set(0)
+            # motor_dictionary["front_right"]["motor"].set(0)
             shooter_dictionary["centered"][0] = True
 
         if NetworkTables.getTable("limelight").getNumber("ty", 0) < -2:  # vertical offset
@@ -107,6 +109,7 @@ def shoot(shooter_dictionary, motor_dictionary, speed = 1) -> dict:
             shooter_dictionary["shooting"] = False
             shooter_dictionary["firing"] = False
             shooter_dictionary["step"] = 0
+            shooter_dictionary["centered"] = [False, False]
             return shooter_dictionary
 
     shooter_dictionary["shooting"] = True
