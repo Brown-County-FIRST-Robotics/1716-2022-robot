@@ -53,7 +53,7 @@ class MyRobot(wpilib.TimedRobot):
         self.controllerHID = interfaces.GenericHID(0)
         
         #other variables
-        self.drive_speed = .8
+        self.drive_speed = 10
         self.shooter_angle_speed = 1
         self.hub_shooting = False
         self.timer = wpilib.Timer()
@@ -141,10 +141,10 @@ class MyRobot(wpilib.TimedRobot):
     def teleopPeriodic(self):
         if abs(self.controller.getLeftY()) > .3 or abs(self.controller.getLeftX()) > .3 or abs(self.controller.getRightX()) > .3:
             # if not self.shooter_dictionary["shooting"] or (self.shooter_dictionary["shooting"] and self.shooter_dictionary["step"] == 0):
-            self.front_right.set((-self.controller.getLeftY() - self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
-            self.front_left.set((-self.controller.getLeftY() + self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
-            self.back_left.set((-self.controller.getLeftY() - self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
-            self.back_right.set((-self.controller.getLeftY() + self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
+            self.front_right.setVoltage((-self.controller.getLeftY() - self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
+            self.front_left.setVoltage((-self.controller.getLeftY() + self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
+            self.back_left.setVoltage((-self.controller.getLeftY() - self.controller.getLeftX() + self.controller.getRightX()) * self.drive_speed)
+            self.back_right.setVoltage((-self.controller.getLeftY() + self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
         else:
             self.front_right.set(0)
             self.front_left.set(0)
