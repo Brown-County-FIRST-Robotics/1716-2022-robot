@@ -1,6 +1,6 @@
 import wpilib
 import ctre
-import rev
+# import rev
 from wpilib import interfaces
 import wpiutil
 import helper_functions
@@ -11,6 +11,8 @@ import helper_functions
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+        wpilib.CameraServer.launch()
+
         self.back_left = ctre.WPI_TalonFX(0)        
         self.front_left = ctre.WPI_TalonFX(1)
         self.front_right = ctre.WPI_TalonFX(2)                
@@ -20,9 +22,8 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter_angle_1 = ctre.WPI_TalonSRX(10)
         self.shooter_angle_2 = ctre.WPI_TalonSRX(11)        
         self.intake = ctre.WPI_TalonFX(12)
-        self.winch = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
 
-
+    
         self.front_left.setNeutralMode(ctre.NeutralMode.Brake)
         self.front_right.setNeutralMode(ctre.NeutralMode.Brake)
         self.back_left.setNeutralMode(ctre.NeutralMode.Brake)
@@ -30,9 +31,11 @@ class MyRobot(wpilib.TimedRobot):
         self.front_right.setInverted(True)
         self.back_right.setInverted(True)
         self.shooter_top.setInverted(True)
-        self.winch.setInverted(True)
+        self.shooter_angle_1.setInverted(True)
+        self.shooter_angle_2.setInverted(True)
 
         #solenoids:
+        self.compressor = wpilib.Compressor(wpilib.PneumaticsModuleType.CTREPCM)
         self.shooter_solenoid = wpilib.DoubleSolenoid(wpilib.PneumaticsModuleType.CTREPCM, forwardChannel = 0, reverseChannel = 1)
         self.shooter_solenoid_timer = wpilib.Timer()
         
@@ -53,10 +56,10 @@ class MyRobot(wpilib.TimedRobot):
         self.controllerHID = interfaces.GenericHID(0)
         
         #other variables
-        self.drive_speed = .8
+        self.drive_speed = 1
         self.shooter_angle_speed = 1
         self.hub_shooting = False
-        self.timer = wpilib.Timer()
+        self.hub_shooting_timer = wpilib.Timer()
 
         # self.limit_switch = wpilib.DigitalInput(0)
         self.potentiometer = wpilib.AnalogInput(0) #0 degrees: 3512, 90 degrees: 3850
@@ -70,7 +73,7 @@ class MyRobot(wpilib.TimedRobot):
         #     "firing" : False, #used for spinning up shooter motors and firing the ball
         #     "potentiometer" : self.potentiometer,
         #     "shooter_solenoid" : self.shooter_solenoid,
-        #     "shooter_position" : 45, #contains shooter angle based on rolling average
+        #     "shooter_position" : 45, #kinda useless, delete soon
         #     "angle" : 45,
         #     "centered" : [False, False],
         # }
@@ -130,6 +133,10 @@ class MyRobot(wpilib.TimedRobot):
         self.testTimer = wpilib.Timer
         self.testList = []
 
+        
+
+    def disabledPeriodic(self):
+        self.compressor.start()
 
     def teleopInit(self):
         ...
@@ -139,6 +146,8 @@ class MyRobot(wpilib.TimedRobot):
         ...
 
     def teleopPeriodic(self):
+
+
         if abs(self.controller.getLeftY()) > .3 or abs(self.controller.getLeftX()) > .3 or abs(self.controller.getRightX()) > .3:
             # if not self.shooter_dictionary["shooting"] or (self.shooter_dictionary["shooting"] and self.shooter_dictionary["step"] == 0):
             self.front_right.set((-self.controller.getLeftY() - self.controller.getLeftX() - self.controller.getRightX()) * self.drive_speed)
@@ -154,25 +163,26 @@ class MyRobot(wpilib.TimedRobot):
         # if not self.shooter_dictionary["shooting"] or (self.shooter_dictionary["shooting"] and self.shooter_dictionary["step"] == 0):
         if not self.hub_shooting:
             if self.controller.getRightBumper():
-                self.shooter_angle.set(-self.shooter_angle_speed)
-            elif self.controller.getLeftBumper():
                 self.shooter_angle.set(self.shooter_angle_speed)
+            elif self.controller.getLeftBumper():
+                self.shooter_angle.set(-self.shooter_angle_speed)
             else:
                 self.shooter_angle.set(0)
 
         # if not self.shooter_dictionary["shooting"]:
-        if self.controller.getRightTriggerAxis() > self.controller.getLeftTriggerAxis():
-            self.shooter.set(self.controller.getRightTriggerAxis())
-            self.intake.set(self.controller.getRightTriggerAxis())
+        if not self.hub_shooting:
+            if self.controller.getRightTriggerAxis() > self.controller.getLeftTriggerAxis():
+                self.shooter.set(self.controller.getRightTriggerAxis())
+                self.intake.set(self.controller.getRightTriggerAxis())
 
-        if self.controller.getRightTriggerAxis() < self.controller.getLeftTriggerAxis():
-            self.intake.set(self.controller.getLeftTriggerAxis() * -0.8)
-            self.shooter.set(self.controller.getLeftTriggerAxis() * -0.8)
+            if self.controller.getRightTriggerAxis() < self.controller.getLeftTriggerAxis():
+                self.intake.set(self.controller.getLeftTriggerAxis() * -0.8)
+                self.shooter.set(self.controller.getLeftTriggerAxis() * -0.8)
 
-        if self.controller.getRightTriggerAxis() == self.controller.getLeftTriggerAxis():
-            self.intake.set(0)
-            self.shooter_bottom.set(0)
-            self.shooter_top.set(0)
+            if self.controller.getRightTriggerAxis() == self.controller.getLeftTriggerAxis():
+                self.intake.set(0)
+                self.shooter_bottom.set(0)
+                self.shooter_top.set(0)
 
         
         #solenoids:
@@ -217,17 +227,16 @@ class MyRobot(wpilib.TimedRobot):
             self.intake_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
 
         # auto-aiming:
-        # self.shooter_rolling_average.append((self.potentiometer.getValue() - 3512) * (90/338))
+        # self.shooter_rolling_average.append((self.potentiometer.getValue() - 2554) * (90/448))
         # self.shooter_rolling_average = self.shooter_rolling_average[1:20]
 
         # self.shooter_dictionary["shooter_position"] = mean(self.shooter_rolling_average)
+        # self.shooter_dictionary["shooter_position"] = ((self.potentiometer.getValue() - 3512) * (90/338))
 
         # if self.shooter_dictionary["shooting"] and self.shooter_dictionary["step"] == 0:
         #     self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kRightRumble, 1)
-        #     # self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 1)
         # else:
         #     self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kRightRumble, 0)
-        #     # self.controllerHID.setRumble(interfaces.GenericHID.RumbleType.kLeftRumble, 0)
 
         # if self.controller.getYButtonPressed():
         #     self.motor_dictionary["shooter_angle"]["previous_position"] = (self.potentiometer.getValue() - 3512) * (90/338)
@@ -264,45 +273,45 @@ class MyRobot(wpilib.TimedRobot):
         # if self.limit_switch.get():
         #     self.shooter_angle.set(0)
 
-        if self.controllerHID.getPOV() == 0:
-            self.winch.set(1)
-        elif self.controllerHID.getPOV() == 180:
-            self.winch.set(-1)
-        else:
-            self.winch.set(0)
-
         #hub aiming
-        # print(((self.potentiometer.getValue() - 3512) * (90/338)))
-        print(self.potentiometer.getValue())
+        # print(((self.potentiometer.getValue() - 2554) * (90/448)))
+        # print((self.potentiometer.getValue() - 2554) * (90/448))
 
-        #0:3955 90: 3962
+        #0: 2554 90: 3002
+        # print((self.potentiometer.getValue() - 2554) * (90/448))
 
+        #auto angling/hub shooting
         if self.controller.getXButtonPressed():
             self.hub_shooting = True
         if self.hub_shooting:
-            if ((self.potentiometer.getValue() - 3512) * (90/338)) < 70:
-                self.shooter_angle.set(.5)
-            if ((self.potentiometer.getValue() - 3512) * (90/338)) > 80:
-                self.shooter_angle.set(-.5)
+            if ((self.potentiometer.getValue() - 2554) * (90/448)) < 60:
+                self.shooter_angle.set(1)
+            elif ((self.potentiometer.getValue() - 2554) * (90/448)) > 65:
+                self.shooter_angle.set(-1)
             else:
                 self.shooter_angle.set(0)
-                self.shooter.set(.7)
-                self.timer.start()
+                self.shooter.setVoltage(5.7)
+                self.hub_shooting_timer.start()
+            if self.hub_shooting_timer.hasElapsed(1):
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
+            if self.hub_shooting_timer.hasElapsed(1.25):
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+            if self.hub_shooting_timer.hasElapsed(1.75):
+                self.shooter.set(0)
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kReverse)
+            if self.hub_shooting_timer.hasElapsed(2):
                 self.hub_shooting = False
-        if self.timer.hasElapsed(1):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
-        if self.timer.hasElapsed(1.25):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
-        if self.timer.hasElapsed(1.75):
-            self.shooter.set(0)
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kReverse)
-        if self.timer.hasElapsed(2):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
-            self.timer.stop()
-            self.timer.reset()
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+                self.hub_shooting_timer.stop()
+                self.hub_shooting_timer.reset()
 
-        if self.controller.getBackButtonPressed:
+        if self.controller.getBackButtonPressed():
+            self.shooter.set(0)
+            self.shooter_angle(0)
             self.hub_shooting = False
+            self.hub_shooting_timer.stop()
+            self.hub_shooting_timer.reset()
+            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
 
         # if self.controller.getXButton():
         #     self.motor_dictionary["shooter_angle"]["motor"].set(.1)
@@ -310,21 +319,22 @@ class MyRobot(wpilib.TimedRobot):
         #     self.motor_dictionary["shooter_angle"]["motor"].set(0)
 
     def autonomousInit(self):
+        self.timer = wpilib.Timer()
         self.timer.start()
-
+        self.autonomous_shooting = False
         # #Initial motor values
-        self.shooter.set(.3)
-        # self.front_right.set(-.3)
-        # self.front_left.set(-.3)
-        # self.back_right.set(-.3)
-        # self.back_left.set(-.3)
+        # self.shooter.set(.3)
+        self.front_right.set(-.3)
+        self.front_left.set(-.3)
+        self.back_right.set(-.3)
+        self.back_left.set(-.3)
 
         # #intake ejection
         self.intake_solenoid_timer.start()
         self.climber_solenoid_timer.start()
 
     def autonomousPeriodic(self):
-        ...
+        print(self.timer.get())
         #solenoid defaults
         if self.intake_solenoid_timer.get() > 10 and self.intake_solenoid_timer.get() < 10.1:
             self.intake_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
@@ -340,26 +350,53 @@ class MyRobot(wpilib.TimedRobot):
             self.climber_solenoid_timer.reset()
 
         if self.timer.hasElapsed(2):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
-        if self.timer.hasElapsed(2.25):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
-            self.shooter.set(0)
-        if self.timer.hasElapsed(2.75):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kReverse)
-            self.front_right.set(-.3)
-            self.front_left.set(-.3)
-            self.back_right.set(-.3)
-            self.back_left.set(-.3)
-        if self.timer.hasElapsed(3):
-            self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
-        if self.timer.hasElapsed(5):
             self.front_right.set(0)
             self.front_left.set(0)
             self.back_right.set(0)
             self.back_left.set(0)
+            self.autonomous_shooting = True
+            self.timer.reset()
+        if self.autonomous_shooting:
+            if ((self.potentiometer.getValue() - 2554) * (90/448)) < 60:
+                self.shooter_angle.set(1)
+            elif ((self.potentiometer.getValue() - 2554) * (90/448)) > 65:
+                self.shooter_angle.set(-1)
+            else:
+                self.shooter_angle.set(0)
+                self.shooter.setVoltage(5.7)
+                self.timer.start()
+            if self.timer.hasElapsed(1):
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
+            if self.timer.hasElapsed(1.25):
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+            if self.timer.hasElapsed(1.75):
+                self.shooter.set(0)
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kReverse)
+            if self.timer.hasElapsed(2):
+                self.autonomous_shooting = False
+                self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+                self.timer.stop()
+                self.timer.reset()
+        #     self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kForward)
+        # if self.timer.hasElapsed(2.25):
+        #     self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+        #     self.shooter.set(0)
+        # if self.timer.hasElapsed(2.75):
+        #     self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kReverse)
+        #     self.front_right.set(-.3)
+        #     self.front_left.set(-.3)
+        #     self.back_right.set(-.3)
+        #     self.back_left.set(-.3)
+        # if self.timer.hasElapsed(3):
+        #     self.shooter_solenoid.set(wpilib.DoubleSolenoid.Value.kOff)
+        # if self.timer.hasElapsed(5):
+        #     self.front_right.set(0)
+        #     self.front_left.set(0)
+        #     self.back_right.set(0)
+        #     self.back_left.set(0)
         
-        self.timer.stop()
-        self.timer.reset()
+        # self.timer.stop()
+        # self.timer.reset()
 
 
 if __name__ == "__main__": 
